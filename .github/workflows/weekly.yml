@@ -1,0 +1,43 @@
+name: "Weekly Feed Generation"
+
+# Grant write permissions to update repository contents
+permissions:
+  contents: write
+
+on:
+  schedule:
+    # Runs every Monday at 08:00 US Central (13:00 UTC)
+    - cron: '0 13 * * 1'
+  workflow_dispatch:
+
+jobs:
+  generate-feed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4 feedgen
+
+      - name: Run feed generator script
+        run: |
+          python mend_rss_feed_generator.py
+
+      - name: Commit and push generated feeds
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: GitHub Actions
+          author_email: actions@github.com
+          message: "chore: weekly update of RSS and HTML feeds"
+          add: |
+            mend_combined_release_feed.xml
+            mend_combined_release_feed.html"
